@@ -1,8 +1,7 @@
 # UI
     - make a "display" object
-        - display left operand right
-        - rounded edged grey background
-        - leave space on bottom for quotes
+        - set to fixed size regardless of current input
+        - round edges
     - make buttons
         -numbers
         -number modifiers
