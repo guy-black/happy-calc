@@ -3,24 +3,39 @@
         - set to fixed size regardless of current input
         - round edges
     - make buttons
-        -numbers
-        -number modifiers
-            - negative and decimal
-        -operands
-        -eval
         -laid out nice
 # Logic
-    -fill out messages and update
-        if number or number modifier
-            if operand == nothing
-                append to left
-            else 
-                append to right
-        if operand
-            if operand == nothing
-                set operand
-            else
-                eval
-                set answer as left and set operator
+
+    -append
+        -convert to string, string append, back to number
+
+    -write out update functions
+        button pressed
+            number:
+                if operator is Nothing
+                    append to left
+                else append to right
+            operator
+                if operator is nothing
+                    if left is nothing
+                        set left to 0
+                    set operator
+                if operator is something
+                    if right is nothing
+                        change opersator
+                    if right is something
+                        solve, set ans to left, set operator
+            number modifier
+                if op is nothing
+                    apply to left
+                if op is something
+                    apply to right
+                posneg - multipy num by -1
+                deci - if num float, ignore, else convert to float
+
+            bcksp : remove last char from act num
+            clr : reset state
+
+
             
         

@@ -45,6 +45,7 @@ type Msg
     | OpButt Op
     | Solve
     | Bcksp
+    | Clear
 
 
 init : Url Params -> Model
@@ -78,6 +79,8 @@ update msg model =
 
         Solve ->
             model
+        Clear -> 
+            model
 
 
 
@@ -109,6 +112,8 @@ buttLab msg =
 
         Solve ->
             "="
+        Clear ->
+            "CLR"
 
 
 grey : Color
@@ -176,10 +181,31 @@ keypad =
         [ row []
             [ keyButt (NumButt 7)
             , keyButt (NumButt 8)
-            , keyButt (NumButt 7)
+            , keyButt (NumButt 9)
             , keyButt (OpButt Divide)
             ]
-            
+        , row []
+            [ keyButt (NumButt 4)
+            , keyButt (NumButt 5)
+            , keyButt (NumButt 6)
+            , keyButt (OpButt Multply)
+            ]
+        , row []
+            [ keyButt (NumButt 1)
+            , keyButt (NumButt 2)
+            , keyButt (NumButt 3)
+            , keyButt (OpButt Minus)
+            ]
+        , row []
+            [ keyButt (NumMod Deci)
+            , keyButt (NumButt 0)
+            , keyButt (NumMod PosNeg)
+            , keyButt (OpButt Divide)
+            ]
+        , row []
+            [ keyButt (Bcksp)
+            , keyButt (Solve)
+            ]
         ]
 
 
