@@ -6,8 +6,7 @@
         -laid out nice
 # Logic
 
-    -append
-        -convert to string, string append, back to number
+   
 
     -write out update functions
         button pressed
@@ -24,7 +23,7 @@
                     if right is nothing
                         change opersator
                     if right is something
-                        solve, set ans to left, set operator
+                        solve,, set operator
             number modifier
                 if op is nothing
                     apply to left
@@ -35,6 +34,9 @@
 
             bcksp : remove last char from act num
             clr : reset state
+            eval :  check for any nothings
+                    convert left and right to reg numbers
+                    then do evaluation
 
 
             
