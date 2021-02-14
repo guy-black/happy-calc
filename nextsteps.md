@@ -10,33 +10,41 @@
 
     -write out update functions
         button pressed
-            number:
-                if operator is Nothing
-                    append to left
-                else append to right
-            operator
-                if operator is nothing
-                    if left is nothing
-                        set left to 0
-                    set operator
-                if operator is something
-                    if right is nothing
-                        change opersator
-                    if right is something
-                        solve,, set operator
+            
             number modifier
                 if op is nothing
                     apply to left
                 if op is something
                     apply to right
-                posneg - multipy num by -1
-                deci - if num float, ignore, else convert to float
+                posneg - if there is num, *-1, if not render a - place holder until number is there***
+                deci - 
+                    check if number is there
+                        if not, render a . until it is ***
+                        if so check if num has . **
+                            if so ignore
+                            if not render a . until a next digit comes*
+
+            * push a . into a buffer that gets printed at the end of the expression in display
+                on number button push check . buffer
+                if empty app number as usual
+                if not, clear it and append a . before number
+
+
+            ** isInt : Float -> Bool
+                isInt f = if f-f.floor == 0 true
+                    else false
+
+
+            ***adjust number data structure
+            | Nothing
+            | Just number
+            | Just Mod  
+
+            use Just Mod for when there is no number, but a mod to render
+
 
             bcksp : remove last char from act num
-            clr : reset state
-            eval :  check for any nothings
-                    convert left and right to reg numbers
-                    then do evaluation
+            
 
 
             

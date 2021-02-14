@@ -49,6 +49,7 @@ type alias Model =
 type Mod
     = Deci
     | PosNeg
+    | Both
 
 
 type Op
@@ -175,6 +176,8 @@ modStr mod =
 
         PosNeg ->
             "+/-"
+        
+        Both -> ""
 
 
 numStr : Maybe Float -> String
