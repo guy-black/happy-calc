@@ -36,15 +36,20 @@ type alias Params =
 
 init : Url Params -> Model
 init url =
-    Model Nothing Nothing Nothing
+    Model None None NoOp
 
 
 type alias Model =
-    { left : Maybe Float
-    , right : Maybe Float
-    , operand : Maybe Op
+    { left : Numb
+    , right : Numb
+    , operand : Op
     }
 
+
+type Numb
+    = Num Float
+    | Mod Mod
+    | None
 
 type Mod
     = Deci
@@ -57,6 +62,7 @@ type Op
     | Minus
     | Multply
     | Divide
+    | NoOp
 
 type Msg
     = NumButt Float
@@ -75,61 +81,68 @@ update msg model =
     case msg of
         NumButt i ->
             case model.operand of
-                Nothing ->
-                    { model | left = (appNum model.left i)}
-                Just _ -> 
-                    { model | right = (appNum model.right i)}
+                NoOp -> 
+                    model
+                _ -> 
+                    { model | right = (appNum model.right i)}    
         NumMod m ->
             model
 
         OpButt o ->
             case model.right of
-                Nothing ->
+                None ->
                     case model.left of
-                        Nothing ->
-                            { model | left = Just 0, operand = Just o}
-                        Just _ ->
-                            { model | operand = Just o}
-                Just _ -> eval model (Just o)
+                        None ->
+                            { model | left = Num 0, operand = o}
+                        Num _ ->
+                            { model | operand = o}
+                        Mod _ -> model --fix later
+                Num _ -> eval model o
+
+                Mod _ -> model --fix later
 
         Bcksp ->
             model
 
         Solve ->
-            eval model Nothing
+            eval model NoOp
 
         Clear ->
-           Model Nothing Nothing Nothing
+           Model None None NoOp
 
 
 ---- append new digit to a Num
-appNum : Maybe  Float -> Float -> Maybe Float
+appNum : Numb -> Float -> Numb
 appNum num i =
     case num of
-        Nothing -> 
-            Just i
-        Just n ->
-            String.toFloat((fromFloat n) ++ (fromFloat i))
+        None -> 
+            Num i
+        Num n ->
+            Num (Maybe.withDefault 0 (String.toFloat((fromFloat n) ++ (fromFloat i))))
+        Mod _ ->
+            num
 
 
  
 
 ---- solve
-eval : Model -> Maybe Op -> Model
+eval : Model -> Op -> Model
 eval model mayOp = 
     case model.left of
-       Nothing -> model
-       Just l -> 
+       Mod _ -> model --fix later
+       None -> model
+       Num l -> 
             case model.right of
-               Nothing -> model
-               Just r -> 
+               Mod _ -> model --fix later
+               None -> model
+               Num r -> 
                     case model.operand of
-                       Nothing -> model
-                       Just Plus -> Model (Just (l + r)) Nothing mayOp
-                       Just Minus -> Model (Just (l - r)) Nothing mayOp
-                       Just Multply -> Model (Just (l * r)) Nothing mayOp
-                       Just Divide -> 
-                            if (r == 0) then {model  | right = Nothing} else  Model (Just (l / r)) Nothing mayOp
+                       NoOp -> model
+                       Plus -> Model (Num (l + r)) None mayOp
+                       Minus -> Model (Num (l - r)) None mayOp
+                       Multply -> Model (Num (l * r)) None mayOp
+                       Divide -> 
+                            if (r == 0) then {model  | right = None} else  Model (Num (l / r)) None NoOp
 
 
 -- VIEW
@@ -180,31 +193,31 @@ modStr mod =
         Both -> ""
 
 
-numStr : Maybe Float -> String
+numStr : Numb -> String
 numStr mum =
     case mum of
-        Nothing ->
+        None ->
             " "
-        Just f ->
+        Num f ->
             fromFloat f
+        Mod _ -> "" --fix later
 
-
-opStr : Maybe Op -> String
+opStr : Op -> String
 opStr mop =
     case mop of
-        Nothing ->
+        NoOp ->
             " "
 
-        Just Plus ->
+        Plus ->
             "+"
 
-        Just Minus ->
+        Minus ->
             "-"
 
-        Just Multply ->
+        Multply ->
             "*"
 
-        Just Divide ->
+        Divide ->
             "/"
 
 
@@ -265,7 +278,7 @@ buttLab msg =
             modStr m
 
         OpButt o ->
-            opStr (Just o)
+            opStr o
 
         Bcksp ->
             "Bcksp"
