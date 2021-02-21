@@ -12,11 +12,7 @@
         button pressed
             
             number modifier
-                if op is nothing
-                    apply to left
-                if op is something
-                    apply to right
-                posneg - if there is num, *-1, if not render a - place holder until number is there***
+                
                 deci - 
                     check if number is there
                         if not, render a . until it is ***
@@ -35,10 +31,10 @@
                     else false
 
 
-            ***adjust number data structure
-            | Nothing
-            | Just number
-            | Just Mod  
+            
+
+handle mod a mod 
+and deci buffer
 
             use Just Mod for when there is no number, but a mod to render
 

@@ -81,12 +81,30 @@ update msg model =
     case msg of
         NumButt i ->
             case model.operand of
-                NoOp -> 
-                    model
-                _ -> 
+                NoOp -> --if left is active number
+                    { model | left = (appNum model.left i)}
+                _ ->  -- if right is active number
                     { model | right = (appNum model.right i)}    
         NumMod m ->
-            model
+            case model.operand of 
+                NoOp -> --if left is active number
+                    case model.left of
+                       None -> {model | left = Mod m}
+                       Num n -> --if there is a number
+                            case m of
+                               PosNeg -> {model | left = Num (n*(-1))}
+                               Deci -> model --handle adding a decimal place waiting for next digit
+                               Both -> model --shouldn't happen
+                       Mod _ -> model --if active number is already a mod
+                _ -> --if right is acive
+                    case model.right of
+                       None -> {model | right = Mod m}
+                       Num n -> --if there is a number
+                            case m of
+                               PosNeg -> {model | right = Num (n*(-1))}
+                               Deci -> model --handle adding a decimal place waiting for next digit
+                               Both -> model --shouldn't happen
+                       Mod _ -> model --if active number is a mod
 
         OpButt o ->
             case model.right of
@@ -96,10 +114,12 @@ update msg model =
                             { model | left = Num 0, operand = o}
                         Num _ ->
                             { model | operand = o}
-                        Mod _ -> model --fix later
+                        Mod _ -> model {--what happens if the left is just an mod with no number, and an operator is pressed?
+                        for now assume user error and do nothing.  maybe change to treat same as None?--}                        
                 Num _ -> eval model o
 
-                Mod _ -> model --fix later
+                Mod _ -> model {--what happens if the right is just a mod with no number and operator is pressed?
+                for now assume user erro and do nothing.--}
 
         Bcksp ->
             model
@@ -119,10 +139,22 @@ appNum num i =
             Num i
         Num n ->
             Num (Maybe.withDefault 0 (String.toFloat((fromFloat n) ++ (fromFloat i))))
-        Mod _ ->
-            num
+        Mod m ->
+            case m of
+                Deci -> 
+                    Num (Maybe.withDefault 0 (String.toFloat("." ++ (fromFloat i))))
+                PosNeg -> 
+                    Num (Maybe.withDefault 0 (String.toFloat("-" ++ (fromFloat i))))
+                Both -> 
+                    Num (Maybe.withDefault 0 (String.toFloat("-." ++ (fromFloat i))))
+                
+               
 
+---- handle mods
 
+------ check if number has decimal
+isInt : Float -> Bool
+isInt f = if (f == (Basics.toFloat (floor f))) then True else False
  
 
 ---- solve
@@ -200,7 +232,11 @@ numStr mum =
             " "
         Num f ->
             fromFloat f
-        Mod _ -> "" --fix later
+        Mod m -> 
+            case m of 
+                Deci -> "."
+                PosNeg -> "-"
+                Both -> "-."
 
 opStr : Op -> String
 opStr mop =
