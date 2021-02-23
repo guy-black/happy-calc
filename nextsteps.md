@@ -25,7 +25,7 @@
             None -> None
             Num f i ->
                 if i>0 then Num f i-1
-                else --convert f to string, apply dropRight 1, convert back to float, return Num new f i
+                else --convert f to string, apply dropRight 1, check if f string endsWith ".", convert back to float, if endsWith "." return NumWD newf i elsereturn Num new f i
             NumWD f i -> 
                 if i>0 then NumWD f i-1
                 else Num f i
@@ -33,3 +33,5 @@
                 case m of
                     Both -> Mod PosNeg
                     _ -> None
+
+
