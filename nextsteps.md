@@ -7,35 +7,5 @@
 # Logic
 
 
-     bcksp -> 
-        case model.right of
-            None ->
-                case model.operand of
-                    None ->
-                        case model.left of
-                            None -> model
-                            _ -> {model | left = bckspNumb model.left}
-                    _ -> {model | operand = NoOP}
-            _ -> {model | right = bckspNumb model.right}
-
+    -set up api connection
     
-    bckspNumb : Numb -> Numb
-    bckspNumb n =
-        case n of
-            None -> None
-            Num f i ->
-                if i>0 then Num f i-1
-                else {--convert f to string, apply dropRight 1, if f string == "" then return None
-                                                                else if f string endsWith "." then return NumWD fbacktofloat i
-                                                                else if f string contains "." and ends with "0" return Num fbackofloat numof0atend 
-                                                                else if f string constains no numbers return corresponding Mod
-                                                                else return Num fbacktofloat i--}
-            NumWD f i -> 
-                if i>0 then NumWD f i-1
-                else Num f i
-            Mod m -> 
-                case m of
-                    Both -> Mod PosNeg
-                    _ -> None
-
-

@@ -94,8 +94,12 @@ update msg model =
 
         NumMod m ->
             case model.operand of
-               NoOp -> {model | left = modNumb model.left m}
-               _ -> {model | right = modNumb model.right m}
+                NoOp ->
+                    { model | left = modNumb model.left m }
+
+                _ ->
+                    { model | right = modNumb model.right m }
+
         OpButt o ->
             case model.right of
                 None ->
@@ -126,7 +130,22 @@ update msg model =
         {--what happens if the right is just a mod with no number and operator is pressed?
                 for now assume user erro and do nothing.--}
         Bcksp ->
-            model
+            case model.right of
+                None ->
+                    case model.operand of
+                        NoOp ->
+                            case model.left of
+                                None ->
+                                    model
+
+                                _ ->
+                                    { model | left = bckspNumb model.left }
+
+                        _ ->
+                            { model | operand = NoOp }
+
+                _ ->
+                    { model | right = bckspNumb model.right }
 
         Solve ->
             eval model NoOp
@@ -136,34 +155,166 @@ update msg model =
 
 
 
+---- Bcksp a number
+
+
+bckspNumb : Numb -> Numb
+bckspNumb n =
+    case n of
+        None ->
+            None
+
+        Mod m ->
+            case m of
+                Both ->
+                    Mod PosNeg
+
+                _ ->
+                    None
+
+        NumWD f i ->
+            if i > 0 then
+                NumWD f (i - 1)
+
+            else
+                Num f i
+
+        Num f i ->
+            if i > 0 then
+                Num f (i - 1)
+
+            else if String.dropRight 1 (String.fromFloat f) == "" then
+                None
+
+            else if String.endsWith "." (String.dropRight 1 (String.fromFloat f)) then
+                NumWD (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) i
+
+            else if String.contains "." (String.dropRight 1 (String.fromFloat f)) && String.endsWith "0" (String.dropRight 1 (String.fromFloat f)) then
+                if isLastNon0CharDeci (String.dropRight 1 (String.fromFloat f)) then
+                    NumWD (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) (zerosAtEnd (String.dropRight 1 (String.fromFloat f)))
+
+                else
+                    Num (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) (zerosAtEnd (String.dropRight 1 (String.fromFloat f)))
+
+            else if isMod (String.dropRight 1 (String.fromFloat f)) then
+                whichMod (String.dropRight 1 (String.fromFloat f))
+
+            else
+                Num (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) i
+
+
+
+--------- how many 0 are at the end of the number
+
+
+zerosAtEnd : String -> Int
+zerosAtEnd s =
+    if String.endsWith "0" s then
+        1 + zerosAtEnd (String.dropRight 1 s)
+
+    else
+        0
+
+
+
+--------------if last non 0 char a .
+
+
+isLastNon0CharDeci : String -> Bool
+isLastNon0CharDeci s =
+    String.endsWith "." (String.dropRight (zerosAtEnd s) s)
+
+
+
+-------- is the string a mod
+
+
+isMod : String -> Bool
+isMod s =
+    if (s == "-") || (s == ".") || (s == "-.") then
+        True
+
+    else
+        False
+
+
+
+------ which mod is it
+
+
+whichMod : String -> Numb
+whichMod s =
+    if s == "-" then
+        Mod PosNeg
+
+    else if s == "." then
+        Mod Deci
+
+    else if s == "-." then
+        Mod Both
+
+    else
+        None
+
+
+
 ---- modify a number
 
 
 modNumb : Numb -> Mod -> Numb
 modNumb n m =
     case m of
-            Both -> n --shouldnt happen
-            Deci -> 
-                case n of
-                    Num f i -> if isInt f 
-                        then NumWD f i 
-                        else n --numb already has a decimal place, dont add another
-                    NumWD _ _ ->  n --already has one, do nothing
-                    None -> Mod Deci
-                    Mod mo -> 
-                        case mo of
-                            PosNeg -> Mod Both 
-                            _ -> n --only other options are Deci and Both,.both already has a one
-            PosNeg ->
-                case n of
-                    Num f i -> Num (f * -1) i
-                    NumWD f i -> NumWD (f * -1) i
-                    None -> Mod PosNeg
-                    Mod mo -> 
-                        case mo of
-                            Deci -> Mod Both
-                            PosNeg -> None
-                            Both -> Mod Deci
+        Both ->
+            n
+
+        --shouldnt happen
+        Deci ->
+            case n of
+                Num f i ->
+                    if isInt f then
+                        NumWD f i
+
+                    else
+                        n
+
+                --numb already has a decimal place, dont add another
+                NumWD _ _ ->
+                    n
+
+                --already has one, do nothing
+                None ->
+                    Mod Deci
+
+                Mod mo ->
+                    case mo of
+                        PosNeg ->
+                            Mod Both
+
+                        _ ->
+                            n
+
+        --only other options are Deci and Both,.both already has a one
+        PosNeg ->
+            case n of
+                Num f i ->
+                    Num (f * -1) i
+
+                NumWD f i ->
+                    NumWD (f * -1) i
+
+                None ->
+                    Mod PosNeg
+
+                Mod mo ->
+                    case mo of
+                        Deci ->
+                            Mod Both
+
+                        PosNeg ->
+                            None
+
+                        Both ->
+                            Mod Deci
 
 
 
@@ -177,15 +328,18 @@ appNum num i =
             Num i 0
 
         Num n d ->
-            if i == 0 then Num n (d+1)
-            else Num (Maybe.withDefault 0 (String.toFloat (fromFloat n ++ fromFloat i))) 0
+            if i == 0 then
+                Num n (d + 1)
+
+            else
+                Num (Maybe.withDefault 0 (String.toFloat (fromFloat n ++ String.repeat d "0" ++ fromFloat i))) 0
 
         NumWD n d ->
             if i == 0 then
                 NumWD n (d + 1)
 
             else
-                Num (Maybe.withDefault 0 (String.toFloat (fromFloat n ++ "." ++ String.repeat d "0" ++fromFloat i))) 0
+                Num (Maybe.withDefault 0 (String.toFloat (fromFloat n ++ "." ++ String.repeat d "0" ++ fromFloat i))) 0
 
         Mod m ->
             case m of
@@ -325,7 +479,7 @@ numStr mum =
         NumWD f i ->
             (fromFloat f ++ ".") ++ String.repeat i "0"
 
-        Num f i->
+        Num f i ->
             fromFloat f ++ String.repeat i "0"
 
         Mod m ->
