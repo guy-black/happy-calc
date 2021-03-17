@@ -3,6 +3,7 @@ module Pages.Top exposing (Model, Msg, Params, page)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Input as Input
+import Http
 import Pages.NotFound exposing (Msg)
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
@@ -10,6 +11,7 @@ import Spa.Url exposing (Url)
 import String exposing (fromFloat, fromInt, toFloat)
 import Url exposing (fromString)
 import Url.Builder exposing (string)
+import Json.Decode exposing (Decoder, field, string)
 
 
 
@@ -18,11 +20,21 @@ import Url.Builder exposing (string)
 
 page : Page Params Model Msg
 page =
-    Page.sandbox
+    Page.element
         { init = init
         , update = update
         , view = view
+        , subscriptions = subscriptions
         }
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 
 type alias Params =
@@ -33,15 +45,16 @@ type alias Params =
 -- MODEL
 
 
-init : Url Params -> Model
+init : Url Params -> ( Model, Cmd Msg )
 init url =
-    Model None None NoOp
+    ( Model None None NoOp "", Cmd.none )
 
 
 type alias Model =
     { left : Numb
     , right : Numb
     , operand : Op
+    , quote : String
     }
 
 
@@ -73,59 +86,60 @@ type Msg
     | Solve
     | Bcksp
     | Clear
+    | SetQuote (Result Http.Error String)
 
 
 
 -- UPDATE
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NumButt i ->
             case model.operand of
                 NoOp ->
                     --if left is active number
-                    { model | left = appNum model.left i }
+                    ( { model | left = appNum model.left i }, Cmd.none )
 
                 _ ->
                     -- if right is active number
-                    { model | right = appNum model.right i }
+                    ( { model | right = appNum model.right i }, Cmd.none )
 
         NumMod m ->
             case model.operand of
                 NoOp ->
-                    { model | left = modNumb model.left m }
+                    ( { model | left = modNumb model.left m }, Cmd.none )
 
                 _ ->
-                    { model | right = modNumb model.right m }
+                    ( { model | right = modNumb model.right m }, Cmd.none )
 
         OpButt o ->
             case model.right of
                 None ->
                     case model.left of
                         None ->
-                            { model | left = Num 0 0, operand = o }
+                            ( { model | left = Num 0 0, operand = o }, Cmd.none )
 
                         Num _ _ ->
-                            { model | operand = o }
+                            ( { model | operand = o }, Cmd.none )
 
                         Mod _ ->
-                            model
+                            ( model, Cmd.none )
 
                         {--what happens if the left is just an mod with no number, and an operator is pressed?
                         for now assume user error and do nothing.  maybe change to treat same as None?--}
                         NumWD n d ->
-                            { model | left = Num n 0, operand = o }
+                            ( { model | left = Num n 0, operand = o }, Cmd.none )
 
                 Num _ _ ->
                     eval model o
 
                 NumWD n d ->
-                    eval (Model model.left (Num n 0) model.operand) o
+                    eval (Model model.left (Num n 0) model.operand "") o
 
                 Mod _ ->
-                    model
+                    ( model, Cmd.none )
 
         {--what happens if the right is just a mod with no number and operator is pressed?
                 for now assume user erro and do nothing.--}
@@ -136,24 +150,29 @@ update msg model =
                         NoOp ->
                             case model.left of
                                 None ->
-                                    model
+                                    ( model, Cmd.none )
 
                                 _ ->
-                                    { model | left = bckspNumb model.left }
+                                    ( { model | left = bckspNumb model.left }, Cmd.none )
 
                         _ ->
-                            { model | operand = NoOp }
+                            ( { model | operand = NoOp }, Cmd.none )
 
                 _ ->
-                    { model | right = bckspNumb model.right }
+                    ( { model | right = bckspNumb model.right }, Cmd.none )
 
         Solve ->
             eval model NoOp
 
         Clear ->
-            Model None None NoOp
+            ( Model None None NoOp "", Cmd.none )
 
-
+        SetQuote result ->
+            case result of
+                Ok s ->
+                    ({model | quote = s}, Cmd.none) 
+                Err _ -> 
+                    ({model | quote = "oopsiedoopsie"}, Cmd.none) 
 
 ---- Bcksp a number
 
@@ -328,7 +347,7 @@ appNum num i =
             Num i 0
 
         Num n d ->
-            if i == 0 then
+            if (i == 0) && (isInt n == False) then
                 Num n (d + 1)
 
             else
@@ -371,53 +390,53 @@ isInt f =
 ---- solve
 
 
-eval : Model -> Op -> Model
+eval : Model -> Op -> ( Model, Cmd Msg )
 eval model mayOp =
     case model.left of
         Mod _ ->
-            model
+            ( model, getRandomQuote )
 
         --fix later
         None ->
-            model
+            ( model, getRandomQuote )
 
         NumWD _ _ ->
-            model
+            ( model, getRandomQuote )
 
         --fix later
         Num l li ->
             case model.right of
                 Mod _ ->
-                    model
+                    ( model, getRandomQuote )
 
                 --fix later
                 NumWD _ _ ->
-                    model
+                    ( model, getRandomQuote )
 
                 --fix later
                 None ->
-                    model
+                    ( model, getRandomQuote )
 
                 Num r ri ->
                     case model.operand of
                         NoOp ->
-                            model
+                            ( model, getRandomQuote )
 
                         Plus ->
-                            Model (Num (l + r) 0) None mayOp
+                            ( Model (Num (l + r) 0) None mayOp "", getRandomQuote )
 
                         Minus ->
-                            Model (Num (l - r) 0) None mayOp
+                            ( Model (Num (l - r) 0) None mayOp "", getRandomQuote )
 
                         Multply ->
-                            Model (Num (l * r) 0) None mayOp
+                            ( Model (Num (l * r) 0) None mayOp "", getRandomQuote )
 
                         Divide ->
                             if r == 0 then
-                                { model | right = None }
+                                ( { model | right = None }, getRandomQuote )
 
                             else
-                                Model (Num (l / r) 0) None NoOp
+                                ( Model (Num (l / r) 0) None NoOp "", getRandomQuote )
 
 
 
@@ -442,13 +461,19 @@ view model =
 
 display : Model -> Element Msg
 display model =
-    row
-        [ Background.color grey
-        , padding 10
-        ]
-        [ text (numStr model.left)
-        , text (opStr model.operand)
-        , text (numStr model.right)
+    column []
+        [ row
+            [ Background.color grey
+            , padding 10
+            ]
+            [ text (numStr model.left)
+            , text (opStr model.operand)
+            , text (numStr model.right)
+            ]
+            ,row
+            []
+            [ text model.quote
+            ]
         ]
 
 
@@ -520,31 +545,31 @@ opStr mop =
 keypad : Element Msg
 keypad =
     column []
-        [ row []
+        [ row [ spacing 10 ]
             [ keyButt (NumButt 7)
             , keyButt (NumButt 8)
             , keyButt (NumButt 9)
             , keyButt (OpButt Divide)
             ]
-        , row []
+        , row [ spacing 10 ]
             [ keyButt (NumButt 4)
             , keyButt (NumButt 5)
             , keyButt (NumButt 6)
             , keyButt (OpButt Multply)
             ]
-        , row []
+        , row [ spacing 10 ]
             [ keyButt (NumButt 1)
             , keyButt (NumButt 2)
             , keyButt (NumButt 3)
             , keyButt (OpButt Minus)
             ]
-        , row []
+        , row [ spacing 10 ]
             [ keyButt (NumMod Deci)
             , keyButt (NumButt 0)
             , keyButt (NumMod PosNeg)
             , keyButt (OpButt Plus)
             ]
-        , row []
+        , row [ spacing 10 ]
             [ keyButt Bcksp
             , keyButt Solve
             , keyButt Clear
@@ -580,3 +605,20 @@ buttLab msg =
 
         Clear ->
             "CLR"
+        SetQuote _ -> ""
+
+
+-- HTTP
+
+
+getRandomQuote : Cmd Msg
+getRandomQuote =
+  Http.get
+    { url = "http://www.boredapi.com/api/activity/"
+    , expect = Http.expectJson SetQuote pullQuote
+    }
+
+
+pullQuote : Decoder String
+pullQuote =
+  field "activity" Json.Decode.string
