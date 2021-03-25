@@ -12,30 +12,73 @@ Done?
 
 # conversions and other common formulas calculator
 
-## UI
-    - display a Form Element Msg
-
-    - display a keypad
-
-## Logic
-
-    - model = {
-        inputs : List Float ? --look up list, array, set, etc, figure what would be best here
-        form : Form
-        actInput : Int --refers to which of inputs is being modified
-    }
-
-    - Form data type has
-        -Element Msg
-            -shows the inputs, output and any other labels
-        -update function 
-        -default inputs
+## conversions
+    -length
+        -logic
+            -model = {
+                input : Len
+                ,output : List Len
+            }
+            -update
+                inputChange -> update all output val
+                outputChange unit ->
+                    case unit is in model.output -> remove unit from model.output
+                    case unit isnt in model.output -> add Len Unit input-converted 
         
+            -type Len =
+                {unit : Unit
+                ,val : Float}
+            -type Unit
+                -mm milimeter
+                -cm centimeter
+                -m meter
+                -km kilometer
+                -in inch
+                -ft feet
+                -yd yard
+                -mi mile
+                -mnm M&M
+                -minm mini m&m
+                -gianm giant m&m
+        -ui
+            -numberpad
+                -0-9, -, ., bcksp
+            -input number
+            -input drop down, choose unit
+            -output dropdown list of check boxes for output units
+            -render a list of all the outputs
+    
+    -weight
+        -same as length but with different units
+    -volume
+        -same as length but with different units
+    -caesars cipher
+        -model {
+            input : String
+            offset : int
+        }
 
-    - main update function
-        - chgForm Form -> load a new Form, let inputs to newform defaults
-        - inputSelected Int -> set actInput to Int
-        - keypadTouched -> update inputs
+        view
+            -input text box
+            -input int
+            -encrypt model.input model.offset
+
+    -temperature
+        -model =
+            {
+                F : Float
+                C : Float
+                K : Float
+            }
+        -update
+            -when one changed manually, update the others automatically
+        -view
+            -keypad
+            -3 inputs
+            -write in one to update the others
+    -ohms law
+        -same as temperature but with different units
+    -maybe more later
 
 # long form equation evaluator
 

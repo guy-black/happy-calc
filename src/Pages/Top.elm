@@ -459,7 +459,7 @@ view model =
 ----DISPLAY
 
 
-display : Model -> Element Msg
+display : Model -> Element msg
 display model =
     column []
         [ row
