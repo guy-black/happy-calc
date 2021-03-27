@@ -4,14 +4,15 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Input as Input
 import Http
+import Json.Decode exposing (Decoder, field, string)
 import Pages.NotFound exposing (Msg)
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import String exposing (fromFloat, fromInt, toFloat)
+import Ui
 import Url exposing (fromString)
 import Url.Builder exposing (string)
-import Json.Decode exposing (Decoder, field, string)
 
 
 
@@ -170,9 +171,12 @@ update msg model =
         SetQuote result ->
             case result of
                 Ok s ->
-                    ({model | quote = s}, Cmd.none) 
-                Err _ -> 
-                    ({model | quote = "oopsiedoopsie"}, Cmd.none) 
+                    ( { model | quote = s }, Cmd.none )
+
+                Err _ ->
+                    ( { model | quote = "oopsiedoopsie" }, Cmd.none )
+
+
 
 ---- Bcksp a number
 
@@ -456,6 +460,39 @@ view model =
 
 
 
+----NEW KEYPAD
+
+
+keypad : Element Msg
+keypad =
+    row []
+        [ Ui.numPad <|
+            { zero = Just (NumButt 0)
+            , one = Just (NumButt 1)
+            , two = Just (NumButt 2)
+            , three = Just (NumButt 3)
+            , four = Just (NumButt 4)
+            , five = Just (NumButt 5)
+            , six = Just (NumButt 6)
+            , seven = Just (NumButt 7)
+            , eight = Just (NumButt 8)
+            , nine = Just (NumButt 9)
+            , decimal = Just (NumMod Deci)
+            , posneg = Just (NumMod PosNeg)
+            , bcksp = Just Bcksp
+            , clear = Just Clear
+            }
+        , Ui.simpleOps <|
+            { add = Just (OpButt Plus)
+            , sub = Just (OpButt Minus)
+            , mult = Just (OpButt Multply)
+            , div = Just (OpButt Divide)
+            , equ = Just Solve
+            }
+        ]
+
+
+
 ----DISPLAY
 
 
@@ -470,7 +507,7 @@ display model =
             , text (opStr model.operand)
             , text (numStr model.right)
             ]
-            ,row
+        , row
             []
             [ text model.quote
             ]
@@ -542,8 +579,8 @@ opStr mop =
 ----KEYPAD
 
 
-keypad : Element Msg
-keypad =
+ypad : Element Msg
+ypad =
     column []
         [ row [ spacing 10 ]
             [ keyButt (NumButt 7)
@@ -605,7 +642,10 @@ buttLab msg =
 
         Clear ->
             "CLR"
-        SetQuote _ -> ""
+
+        SetQuote _ ->
+            ""
+
 
 
 -- HTTP
@@ -613,12 +653,12 @@ buttLab msg =
 
 getRandomQuote : Cmd Msg
 getRandomQuote =
-  Http.get
-    { url = "http://www.boredapi.com/api/activity/"
-    , expect = Http.expectJson SetQuote pullQuote
-    }
+    Http.get
+        { url = "http://www.boredapi.com/api/activity/"
+        , expect = Http.expectJson SetQuote pullQuote
+        }
 
 
 pullQuote : Decoder String
 pullQuote =
-  field "activity" Json.Decode.string
+    field "activity" Json.Decode.string

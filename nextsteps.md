@@ -4,11 +4,9 @@
     - make a "display" object
         - set to fixed size regardless of current input
         - round edges
-    - make buttons
-        -laid out nice
 ## Logic
 
-Done?
+   - pull http request component out into seperate file for whole app to pull from
 
 # conversions and other common formulas calculator
 
