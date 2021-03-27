@@ -65,7 +65,7 @@ view model =
     , body =
         [ column []
             [ text "weight converter"
-            , Ui.menu
+            , Ui.conversionsMenu
             ]
         ]
     }

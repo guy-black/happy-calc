@@ -80,7 +80,7 @@ view model =
     , body =
         [ column []
             [ text "length converter"
-            , Ui.menu
+            , Ui.conversionsMenu
             ]
         ]
     }

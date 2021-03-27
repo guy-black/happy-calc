@@ -1,20 +1,29 @@
-module Ui exposing (menu)
+module Ui exposing (conversionsMenu)
 
-import Spa.Generated.Route as Route
 import Element exposing (..)
+import Framework.Grid as Grid exposing  (..)
+import Framework.Button as Button exposing (..)
+import Framework.Tag as Tag exposing (..)
+import Spa.Generated.Route as Route
 
-menu : Element msg
-menu = column[][
-            link []
-                { url = Route.toString Route.Conversions__Length
-                , label = text "Length"
-                }
-            ,link []
-                { url = Route.toString Route.Conversions__Weight
-                , label = text "weight"
-                }
-            ,link []
-                { url = Route.toString Route.Conversions__Temp
-                , label = text "Temp"
-                }
+
+
+
+
+conversionsMenu : Element msg
+conversionsMenu =
+    Element.row Grid.compact <|
+        [ link (Button.simple ++ Tag.slim)
+            { url = Route.toString Route.Conversions__Length
+            , label = text "Length"
+            }
+        , link (Button.simple ++ Tag.slim)
+            { url = Route.toString Route.Conversions__Weight
+            , label = text "weight"
+            }
+        , link (Button.simple ++ Tag.slim)
+            { url = Route.toString Route.Conversions__Temp
+            , label = text "Temp"
+            }
         ]
+

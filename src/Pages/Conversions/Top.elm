@@ -66,7 +66,7 @@ view model =
     , body = [
         column [][
             disp
-            ,Ui.menu
+            ,Ui.conversionsMenu    
         ]   
     ]
     }

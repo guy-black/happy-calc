@@ -65,7 +65,7 @@ view model =
     , body =
         [ column []
             [ text "temp converter"
-            , Ui.menu
+            , Ui.conversionsMenu
             ]
         ]
     }
