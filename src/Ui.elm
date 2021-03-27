@@ -1,12 +1,15 @@
-module Ui exposing (conversionsMenu, numPad, simpleOps)
+module Ui exposing (conversionsMenu, display, numPad, simpleOps, getRandomQuote)
 
 import Element exposing (..)
 import Element.Input as Input exposing (..)
 import Framework.Button as Button exposing (..)
+import Framework.Card as Card exposing (..)
+import Framework.Color as Color exposing (..)
 import Framework.Grid as Grid exposing (..)
 import Framework.Tag as Tag exposing (..)
 import Spa.Generated.Route as Route
-
+import Http
+import Json.Decode exposing (Decoder, string, field)
 
 conversionsMenu : Element msg
 conversionsMenu =
@@ -114,34 +117,59 @@ numPad msgs =
         ]
 
 
-
 simpleOps :
     { add : Maybe msg
     , sub : Maybe msg
     , mult : Maybe msg
     , div : Maybe msg
     , equ : Maybe msg
-    } -> Element msg
+    }
+    -> Element msg
 simpleOps msgs =
     Element.column []
-        [Input.button Button.fill <|
-             { onPress = msgs.div
-             , label = Element.text "/"
-             }
-        ,Input.button Button.fill <|
-              { onPress = msgs.mult
-              , label = Element.text "*"
-              }
-        ,Input.button Button.fill <|
-              { onPress = msgs.sub
-              , label = Element.text "-"
-              }
-        ,Input.button Button.fill <|
-              { onPress = msgs.add
-              , label = Element.text "+"
-              }
-       ,Input.button Button.fill <|
-              { onPress = msgs.equ
-              , label = Element.text "="
-              }
-       ]
+        [ Input.button Button.fill <|
+            { onPress = msgs.div
+            , label = Element.text "/"
+            }
+        , Input.button Button.fill <|
+            { onPress = msgs.mult
+            , label = Element.text "*"
+            }
+        , Input.button Button.fill <|
+            { onPress = msgs.sub
+            , label = Element.text "-"
+            }
+        , Input.button Button.fill <|
+            { onPress = msgs.add
+            , label = Element.text "+"
+            }
+        , Input.button Button.fill <|
+            { onPress = msgs.equ
+            , label = Element.text "="
+            }
+        ]
+
+
+display : String -> Element msg
+display s =
+    Element.el (Card.simple ++ Tag.simple ++ Color.light ++ (Element.width (Element.maximum 215 Element.fill) :: [])) <|
+        Element.text s
+
+
+
+
+ -- HTTP                                                                                                                                 
+  
+  
+getRandomQuote : ((Result Http.Error String) -> msg) -> Cmd msg
+getRandomQuote m =
+     Http.get
+         { url = "http://www.boredapi.com/api/activity/"
+         , expect = Http.expectJson m pullQuote
+         }
+ 
+ 
+pullQuote : Decoder String
+pullQuote =
+     field "activity" Json.Decode.string
+     

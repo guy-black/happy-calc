@@ -48,7 +48,7 @@ type alias Params =
 
 init : Url Params -> ( Model, Cmd Msg )
 init url =
-    ( Model None None NoOp "", Cmd.none )
+    ( Model None None NoOp " ", Cmd.none )
 
 
 type alias Model =
@@ -166,7 +166,7 @@ update msg model =
             eval model NoOp
 
         Clear ->
-            ( Model None None NoOp "", Cmd.none )
+            ( Model None None NoOp " ", Cmd.none )
 
         SetQuote result ->
             case result of
@@ -398,49 +398,49 @@ eval : Model -> Op -> ( Model, Cmd Msg )
 eval model mayOp =
     case model.left of
         Mod _ ->
-            ( model, getRandomQuote )
+            ( model, (Ui.getRandomQuote SetQuote) )
 
         --fix later
         None ->
-            ( model, getRandomQuote )
+            ( model, (Ui.getRandomQuote SetQuote) )
 
         NumWD _ _ ->
-            ( model, getRandomQuote )
+            ( model, (Ui.getRandomQuote SetQuote) )
 
         --fix later
         Num l li ->
             case model.right of
                 Mod _ ->
-                    ( model, getRandomQuote )
+                    ( model, (Ui.getRandomQuote SetQuote) )
 
                 --fix later
                 NumWD _ _ ->
-                    ( model, getRandomQuote )
+                    ( model, (Ui.getRandomQuote SetQuote) )
 
                 --fix later
                 None ->
-                    ( model, getRandomQuote )
+                    ( model, (Ui.getRandomQuote SetQuote) )
 
                 Num r ri ->
                     case model.operand of
                         NoOp ->
-                            ( model, getRandomQuote )
+                            ( model, (Ui.getRandomQuote SetQuote) )
 
                         Plus ->
-                            ( Model (Num (l + r) 0) None mayOp "", getRandomQuote )
+                            ( Model (Num (l + r) 0) None mayOp "", (Ui.getRandomQuote SetQuote) )
 
                         Minus ->
-                            ( Model (Num (l - r) 0) None mayOp "", getRandomQuote )
+                            ( Model (Num (l - r) 0) None mayOp "", (Ui.getRandomQuote SetQuote) )
 
                         Multply ->
-                            ( Model (Num (l * r) 0) None mayOp "", getRandomQuote )
+                            ( Model (Num (l * r) 0) None mayOp "", (Ui.getRandomQuote SetQuote) )
 
                         Divide ->
                             if r == 0 then
-                                ( { model | right = None }, getRandomQuote )
+                                ( { model | right = None }, (Ui.getRandomQuote SetQuote) )
 
                             else
-                                ( Model (Num (l / r) 0) None NoOp "", getRandomQuote )
+                                ( Model (Num (l / r) 0) None NoOp "", (Ui.getRandomQuote SetQuote) )
 
 
 
@@ -452,7 +452,8 @@ view model =
     { title = "Calculator :)"
     , body =
         [ column []
-            [ display model
+            [ Ui.display ((numStr model.left) ++ (opStr model.operand) ++ (numStr model.right))
+            , Ui.display (model.quote)
             , keypad
             ]
         ]
@@ -576,89 +577,3 @@ opStr mop =
 
 
 
-----KEYPAD
-
-
-ypad : Element Msg
-ypad =
-    column []
-        [ row [ spacing 10 ]
-            [ keyButt (NumButt 7)
-            , keyButt (NumButt 8)
-            , keyButt (NumButt 9)
-            , keyButt (OpButt Divide)
-            ]
-        , row [ spacing 10 ]
-            [ keyButt (NumButt 4)
-            , keyButt (NumButt 5)
-            , keyButt (NumButt 6)
-            , keyButt (OpButt Multply)
-            ]
-        , row [ spacing 10 ]
-            [ keyButt (NumButt 1)
-            , keyButt (NumButt 2)
-            , keyButt (NumButt 3)
-            , keyButt (OpButt Minus)
-            ]
-        , row [ spacing 10 ]
-            [ keyButt (NumMod Deci)
-            , keyButt (NumButt 0)
-            , keyButt (NumMod PosNeg)
-            , keyButt (OpButt Plus)
-            ]
-        , row [ spacing 10 ]
-            [ keyButt Bcksp
-            , keyButt Solve
-            , keyButt Clear
-            ]
-        ]
-
-
-keyButt : Msg -> Element Msg
-keyButt msg =
-    Input.button []
-        { onPress = Just msg
-        , label = text (buttLab msg)
-        }
-
-
-buttLab : Msg -> String
-buttLab msg =
-    case msg of
-        NumButt i ->
-            fromFloat i
-
-        NumMod m ->
-            modStr m
-
-        OpButt o ->
-            opStr o
-
-        Bcksp ->
-            "Bcksp"
-
-        Solve ->
-            "="
-
-        Clear ->
-            "CLR"
-
-        SetQuote _ ->
-            ""
-
-
-
--- HTTP
-
-
-getRandomQuote : Cmd Msg
-getRandomQuote =
-    Http.get
-        { url = "http://www.boredapi.com/api/activity/"
-        , expect = Http.expectJson SetQuote pullQuote
-        }
-
-
-pullQuote : Decoder String
-pullQuote =
-    field "activity" Json.Decode.string

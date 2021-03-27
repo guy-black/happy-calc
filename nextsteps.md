@@ -1,13 +1,8 @@
-# simple desktop calculator
+# general things
 
 ## UI
-    - make a "display" object
-        - set to fixed size regardless of current input
-        - round edges
-## Logic
-
-   - pull http request component out into seperate file for whole app to pull from
-
+    - make quote wrap around into another line, not stretch past
+    - get icons
 # conversions and other common formulas calculator
 
 ## conversions
