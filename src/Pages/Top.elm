@@ -48,7 +48,7 @@ type alias Params =
 
 init : Url Params -> ( Model, Cmd Msg )
 init url =
-    ( Model None None NoOp " ", Cmd.none )
+    ( Model None None NoOp "", Cmd.none )
 
 
 type alias Model =

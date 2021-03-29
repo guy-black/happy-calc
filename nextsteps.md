@@ -2,7 +2,7 @@
 
 ## UI
 
-   -icons, fix display height, work on general sizes
+   -icons, work on general sizes and colors
 
 
 

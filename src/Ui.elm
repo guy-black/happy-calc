@@ -158,8 +158,7 @@ isLTE s f =
 
 displayLine : String -> Element msg
 displayLine s =
-    --Element.el (Card.fill ++ Tag.simple ++ Color.light ++ (Element.width (Element.maximum 215 Element.fill) :: [])) <|
-    Element.el ((Card.fill ++ Tag.simple) ++ [ Element.width (px 215) ]) <|
+    Element.el ((Card.fill ++ Tag.simple) ++ [ Element.width (px 215), Element.height (px 30) ]) <|
         Element.text s
 
 
