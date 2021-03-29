@@ -1,8 +1,11 @@
 # general things
 
 ## UI
-    - make quote wrap around into another line, not stretch past
-    - get icons
+
+   -icons, fix display height, work on general sizes
+
+
+
 # conversions and other common formulas calculator
 
 ## conversions

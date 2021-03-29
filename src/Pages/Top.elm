@@ -452,8 +452,8 @@ view model =
     { title = "Calculator :)"
     , body =
         [ column []
-            [ Ui.display ((numStr model.left) ++ (opStr model.operand) ++ (numStr model.right))
-            , Ui.display (model.quote)
+            [ Ui.display 20 ((numStr model.left) ++ (opStr model.operand) ++ (numStr model.right))
+            , Ui.display 20 (model.quote)
             , keypad
             ]
         ]

@@ -1,4 +1,4 @@
-module Ui exposing (conversionsMenu, display, numPad, simpleOps, getRandomQuote)
+module Ui exposing (conversionsMenu, display, getRandomQuote, numPad, simpleOps)
 
 import Element exposing (..)
 import Element.Input as Input exposing (..)
@@ -7,9 +7,10 @@ import Framework.Card as Card exposing (..)
 import Framework.Color as Color exposing (..)
 import Framework.Grid as Grid exposing (..)
 import Framework.Tag as Tag exposing (..)
-import Spa.Generated.Route as Route
 import Http
-import Json.Decode exposing (Decoder, string, field)
+import Json.Decode exposing (Decoder, field, string)
+import Spa.Generated.Route as Route
+
 
 conversionsMenu : Element msg
 conversionsMenu =
@@ -150,26 +151,70 @@ simpleOps msgs =
         ]
 
 
-display : String -> Element msg
-display s =
-    Element.el (Card.simple ++ Tag.simple ++ Color.light ++ (Element.width (Element.maximum 215 Element.fill) :: [])) <|
+isLTE : Int -> Int -> Bool
+isLTE s f =
+    f <= s
+
+
+displayLine : String -> Element msg
+displayLine s =
+    --Element.el (Card.fill ++ Tag.simple ++ Color.light ++ (Element.width (Element.maximum 215 Element.fill) :: [])) <|
+    Element.el ((Card.fill ++ Tag.simple) ++ [ Element.width (px 215) ]) <|
         Element.text s
 
 
+stringCutter : Int -> String -> List String
+stringCutter i s =
+    let
+        str =
+            String.trim s
+    in
+    if String.length str > i then
+        let
+            breakPoint =
+                String.indexes " " str
+                    |> List.filter (isLTE i)
+                    |> List.maximum
+        in
+        case breakPoint of
+            Nothing ->
+                let
+                    firstWord =
+                        String.words str
+                            |> List.head
+                            |> Maybe.withDefault ""
+                in
+                if String.length firstWord > (i * 2) then
+                    (String.left i str ++ "...") :: stringCutter i (String.dropLeft i str)
+
+                else
+                    (String.left (String.length firstWord // 2) str ++ "..") :: stringCutter i (String.dropLeft (String.length firstWord // 2) str)
+
+            Just bp ->
+                String.left bp str :: stringCutter i (String.dropLeft bp str)
+
+    else
+        str :: []
 
 
- -- HTTP                                                                                                                                 
-  
-  
-getRandomQuote : ((Result Http.Error String) -> msg) -> Cmd msg
+display : Int -> String -> Element msg
+display i s =
+    Element.column [] <|
+        List.map displayLine (stringCutter i s)
+
+
+
+-- HTTP
+
+
+getRandomQuote : (Result Http.Error String -> msg) -> Cmd msg
 getRandomQuote m =
-     Http.get
-         { url = "http://www.boredapi.com/api/activity/"
-         , expect = Http.expectJson m pullQuote
-         }
- 
- 
+    Http.get
+        { url = "http://www.boredapi.com/api/activity/"
+        , expect = Http.expectJson m pullQuote
+        }
+
+
 pullQuote : Decoder String
 pullQuote =
-     field "activity" Json.Decode.string
-     
+    field "activity" Json.Decode.string
