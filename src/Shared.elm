@@ -14,8 +14,8 @@ import Element.Font as Font
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Url exposing (Url)
-
-
+import Framework.Color as Color exposing (..)
+import Heroicons.Outline as Icons exposing (..)
 
 -- INIT
 
@@ -70,8 +70,8 @@ view { page, toMsg } model =
     , body =
         [ column [ padding 20, spacing 20, height fill ]
             [ row [ spacing 20 ]
-                [ link [ Font.color (rgb 0 0.25 0.5), Font.underline ] { url = Route.toString Route.Top, label = text "desktop calculator" }
-                , link [ Font.color (rgb 0 0.25 0.5), Font.underline ] { url = Route.toString Route.Conversions__Top, label = text "Conversions" }
+                [ Element.link [ Font.color (rgb 0 0.25 0.5), Font.underline ] { url = Route.toString Route.Top, label = text "calculator" }
+                , Element.link [ Font.color (rgb 0 0.25 0.5), Font.underline ] { url = Route.toString Route.Conversions__Top, label = text "Conversions" }
                 ]
             , column [ height fill ] page.body
             ]
