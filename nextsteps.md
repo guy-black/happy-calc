@@ -63,18 +63,10 @@
             -encrypt model.input model.offset
 
     -temperature
-        -model =
-            {
-                F : Float
-                C : Float
-                K : Float
-            }
-        -update
-            -when one changed manually, update the others automatically
-        -view
-            -keypad
-            -3 inputs
-            -write in one to update the others
+        -pull numbs out from main calc into ui to share
+	-use that instead of floats
+	-also pull appNum out
+	-maybe just make a Utils.elm file to hold those and keep seperate from the Ui
     -ohms law
         -same as temperature but with different units
     -maybe more later

@@ -7,6 +7,7 @@ import Spa.Generated.Route as Route
 import Element exposing (..)
 import Element exposing (link, text)
 import Ui
+import Http
 
 
 page : Page Params Model Msg
@@ -28,12 +29,14 @@ type alias Params =
 
 
 type alias Model =
-    {}
+    {
+    quote : String
+    }
 
 
 init : Url Params -> ( Model, Cmd Msg )
 init { params } =
-    ( {}, Cmd.none )
+    ( Model "", (Ui.getRandomQuote SetQuote) )
 
 
 
@@ -41,15 +44,19 @@ init { params } =
 
 
 type Msg
-    = ReplaceMe
+    = SetQuote (Result Http.Error String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
-            ( model, Cmd.none )
+        SetQuote result ->
+           case result of
+                Ok s ->
+                    ( { model | quote = s }, Cmd.none )
 
+                Err _ ->
+                    ( { model | quote = "oopsiedoopsie" }, Cmd.none )
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -65,7 +72,7 @@ view model =
     { title = "Conversions.Top"
     , body = [
         column [][
-            disp
+             Ui.display 20 model.quote
             ,Ui.conversionsMenu    
         ]   
     ]
@@ -73,6 +80,3 @@ view model =
 
 
 
-
-disp : Element msg
-disp = text ""

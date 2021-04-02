@@ -496,30 +496,6 @@ keypad =
 
 ----DISPLAY
 
-
-display : Model -> Element msg
-display model =
-    column []
-        [ row
-            [ Background.color grey
-            , padding 10
-            ]
-            [ text (numStr model.left)
-            , text (opStr model.operand)
-            , text (numStr model.right)
-            ]
-        , row
-            []
-            [ text model.quote
-            ]
-        ]
-
-
-grey : Color
-grey =
-    rgb255 169 184 199
-
-
 modStr : Mod -> String
 modStr mod =
     case mod of
@@ -574,6 +550,3 @@ opStr mop =
 
         Divide ->
             "/"
-
-
-

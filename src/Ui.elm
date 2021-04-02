@@ -1,6 +1,7 @@
-module Ui exposing (conversionsMenu, display, getRandomQuote, numPad, simpleOps)
+module Ui exposing (conversionsMenu, display, getRandomQuote, numPad, simpleOps, smolDisp)
 
 import Element exposing (..)
+import Element.Border as Border exposing (..)
 import Element.Input as Input exposing (..)
 import Framework.Button as Button exposing (..)
 import Framework.Card as Card exposing (..)
@@ -10,6 +11,7 @@ import Framework.Tag as Tag exposing (..)
 import Http
 import Json.Decode exposing (Decoder, field, string)
 import Spa.Generated.Route as Route
+import String exposing (..)
 
 
 conversionsMenu : Element msg
@@ -159,7 +161,7 @@ isLTE s f =
 displayLine : String -> Element msg
 displayLine s =
     Element.el ((Card.fill ++ Tag.simple) ++ [ Element.width (px 215), Element.height (px 30) ]) <|
-        Element.text s
+        Element.el [ centerX ] (Element.text s)
 
 
 stringCutter : Int -> String -> List String
@@ -200,6 +202,35 @@ display : Int -> String -> Element msg
 display i s =
     Element.column [] <|
         List.map displayLine (stringCutter i s)
+
+
+
+--number to show, string of whatever unit, color if you want it bordered, what to do when clicked
+
+
+smolDisp : Maybe Float -> String -> Maybe Color -> msg -> Element msg
+smolDisp f s m msg =
+    let
+        floStr =
+            case f of
+                Nothing ->
+                    ""
+
+                Just ff ->
+                    String.fromFloat ff
+    in
+    case m of
+        Nothing ->
+            Input.button (Button.simple ++ Tag.simple ++ [ Border.color Color.lightGrey, Border.width 3 ]) <|
+                { onPress = Just msg
+                , label = Element.text (floStr ++ " " ++ s)
+                }
+
+        Just c ->
+            Input.button (Button.simple ++ Tag.simple ++ [ Border.color c, Border.width 3 ]) <|
+                { onPress = Just msg
+                , label = Element.text (floStr ++ " " ++ s)
+                }
 
 
 
