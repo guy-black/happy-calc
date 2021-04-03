@@ -1,4 +1,4 @@
-module Ui exposing (conversionsMenu, display, getRandomQuote, numPad, simpleOps, smolDisp)
+module Ui exposing (conversionsMenu, display, numPad, simpleOps, smolDisp)
 
 import Element exposing (..)
 import Element.Border as Border exposing (..)
@@ -12,7 +12,8 @@ import Http
 import Json.Decode exposing (Decoder, field, string)
 import Spa.Generated.Route as Route
 import String exposing (..)
-
+import Types exposing (..)
+import Utils
 
 conversionsMenu : Element msg
 conversionsMenu =
@@ -208,43 +209,20 @@ display i s =
 --number to show, string of whatever unit, color if you want it bordered, what to do when clicked
 
 
-smolDisp : Maybe Float -> String -> Maybe Color -> msg -> Element msg
+smolDisp : Numb -> String -> Maybe Color -> msg -> Element msg
 smolDisp f s m msg =
-    let
-        floStr =
-            case f of
-                Nothing ->
-                    ""
-
-                Just ff ->
-                    String.fromFloat ff
-    in
     case m of
         Nothing ->
             Input.button (Button.simple ++ Tag.simple ++ [ Border.color Color.lightGrey, Border.width 3 ]) <|
                 { onPress = Just msg
-                , label = Element.text (floStr ++ " " ++ s)
+                , label = Element.text ((Utils.numStr f) ++ " " ++ s)
                 }
 
         Just c ->
             Input.button (Button.simple ++ Tag.simple ++ [ Border.color c, Border.width 3 ]) <|
                 { onPress = Just msg
-                , label = Element.text (floStr ++ " " ++ s)
+                , label = Element.text ((Utils.numStr f) ++ " " ++ s)
                 }
 
 
 
--- HTTP
-
-
-getRandomQuote : (Result Http.Error String -> msg) -> Cmd msg
-getRandomQuote m =
-    Http.get
-        { url = "http://www.boredapi.com/api/activity/"
-        , expect = Http.expectJson m pullQuote
-        }
-
-
-pullQuote : Decoder String
-pullQuote =
-    field "activity" Json.Decode.string

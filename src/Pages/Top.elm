@@ -11,6 +11,8 @@ import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 import String exposing (fromFloat, fromInt, toFloat)
 import Ui
+import Utils
+import Types exposing (..)
 import Url exposing (fromString)
 import Url.Builder exposing (string)
 
@@ -59,25 +61,6 @@ type alias Model =
     }
 
 
-type Numb
-    = Num Float Int
-    | NumWD Float Int
-    | Mod Mod
-    | None
-
-
-type Mod
-    = Deci
-    | PosNeg
-    | Both
-
-
-type Op
-    = Plus
-    | Minus
-    | Multply
-    | Divide
-    | NoOp
 
 
 type Msg
@@ -101,19 +84,19 @@ update msg model =
             case model.operand of
                 NoOp ->
                     --if left is active number
-                    ( { model | left = appNum model.left i }, Cmd.none )
+                    ( { model | left = Utils.appNum model.left i }, Cmd.none )
 
                 _ ->
                     -- if right is active number
-                    ( { model | right = appNum model.right i }, Cmd.none )
+                    ( { model | right = Utils.appNum model.right i }, Cmd.none )
 
         NumMod m ->
             case model.operand of
                 NoOp ->
-                    ( { model | left = modNumb model.left m }, Cmd.none )
+                    ( { model | left = Utils.modNumb model.left m }, Cmd.none )
 
                 _ ->
-                    ( { model | right = modNumb model.right m }, Cmd.none )
+                    ( { model | right = Utils.modNumb model.right m }, Cmd.none )
 
         OpButt o ->
             case model.right of
@@ -154,13 +137,13 @@ update msg model =
                                     ( model, Cmd.none )
 
                                 _ ->
-                                    ( { model | left = bckspNumb model.left }, Cmd.none )
+                                    ( { model | left = Utils.bckspNumb model.left }, Cmd.none )
 
                         _ ->
                             ( { model | operand = NoOp }, Cmd.none )
 
                 _ ->
-                    ( { model | right = bckspNumb model.right }, Cmd.none )
+                    ( { model | right = Utils.bckspNumb model.right }, Cmd.none )
 
         Solve ->
             eval model NoOp
@@ -178,218 +161,6 @@ update msg model =
 
 
 
----- Bcksp a number
-
-
-bckspNumb : Numb -> Numb
-bckspNumb n =
-    case n of
-        None ->
-            None
-
-        Mod m ->
-            case m of
-                Both ->
-                    Mod PosNeg
-
-                _ ->
-                    None
-
-        NumWD f i ->
-            if i > 0 then
-                NumWD f (i - 1)
-
-            else
-                Num f i
-
-        Num f i ->
-            if i > 0 then
-                Num f (i - 1)
-
-            else if String.dropRight 1 (String.fromFloat f) == "" then
-                None
-
-            else if String.endsWith "." (String.dropRight 1 (String.fromFloat f)) then
-                NumWD (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) i
-
-            else if String.contains "." (String.dropRight 1 (String.fromFloat f)) && String.endsWith "0" (String.dropRight 1 (String.fromFloat f)) then
-                if isLastNon0CharDeci (String.dropRight 1 (String.fromFloat f)) then
-                    NumWD (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) (zerosAtEnd (String.dropRight 1 (String.fromFloat f)))
-
-                else
-                    Num (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) (zerosAtEnd (String.dropRight 1 (String.fromFloat f)))
-
-            else if isMod (String.dropRight 1 (String.fromFloat f)) then
-                whichMod (String.dropRight 1 (String.fromFloat f))
-
-            else
-                Num (Maybe.withDefault 0 (String.toFloat (String.dropRight 1 (String.fromFloat f)))) i
-
-
-
---------- how many 0 are at the end of the number
-
-
-zerosAtEnd : String -> Int
-zerosAtEnd s =
-    if String.endsWith "0" s then
-        1 + zerosAtEnd (String.dropRight 1 s)
-
-    else
-        0
-
-
-
---------------if last non 0 char a .
-
-
-isLastNon0CharDeci : String -> Bool
-isLastNon0CharDeci s =
-    String.endsWith "." (String.dropRight (zerosAtEnd s) s)
-
-
-
--------- is the string a mod
-
-
-isMod : String -> Bool
-isMod s =
-    if (s == "-") || (s == ".") || (s == "-.") then
-        True
-
-    else
-        False
-
-
-
------- which mod is it
-
-
-whichMod : String -> Numb
-whichMod s =
-    if s == "-" then
-        Mod PosNeg
-
-    else if s == "." then
-        Mod Deci
-
-    else if s == "-." then
-        Mod Both
-
-    else
-        None
-
-
-
----- modify a number
-
-
-modNumb : Numb -> Mod -> Numb
-modNumb n m =
-    case m of
-        Both ->
-            n
-
-        --shouldnt happen
-        Deci ->
-            case n of
-                Num f i ->
-                    if isInt f then
-                        NumWD f i
-
-                    else
-                        n
-
-                --numb already has a decimal place, dont add another
-                NumWD _ _ ->
-                    n
-
-                --already has one, do nothing
-                None ->
-                    Mod Deci
-
-                Mod mo ->
-                    case mo of
-                        PosNeg ->
-                            Mod Both
-
-                        _ ->
-                            n
-
-        --only other options are Deci and Both,.both already has a one
-        PosNeg ->
-            case n of
-                Num f i ->
-                    Num (f * -1) i
-
-                NumWD f i ->
-                    NumWD (f * -1) i
-
-                None ->
-                    Mod PosNeg
-
-                Mod mo ->
-                    case mo of
-                        Deci ->
-                            Mod Both
-
-                        PosNeg ->
-                            None
-
-                        Both ->
-                            Mod Deci
-
-
-
----- append new digit to a Num
-
-
-appNum : Numb -> Float -> Numb
-appNum num i =
-    case num of
-        None ->
-            Num i 0
-
-        Num n d ->
-            if (i == 0) && (isInt n == False) then
-                Num n (d + 1)
-
-            else
-                Num (Maybe.withDefault 0 (String.toFloat (fromFloat n ++ String.repeat d "0" ++ fromFloat i))) 0
-
-        NumWD n d ->
-            if i == 0 then
-                NumWD n (d + 1)
-
-            else
-                Num (Maybe.withDefault 0 (String.toFloat (fromFloat n ++ "." ++ String.repeat d "0" ++ fromFloat i))) 0
-
-        Mod m ->
-            case m of
-                Deci ->
-                    Num (Maybe.withDefault 0 (String.toFloat ("." ++ fromFloat i))) 0
-
-                PosNeg ->
-                    Num (Maybe.withDefault 0 (String.toFloat ("-" ++ fromFloat i))) 0
-
-                Both ->
-                    Num (Maybe.withDefault 0 (String.toFloat ("-." ++ fromFloat i))) 0
-
-
-
----- handle mods
------- check if number has decimal
-
-
-isInt : Float -> Bool
-isInt f =
-    if f == Basics.toFloat (floor f) then
-        True
-
-    else
-        False
-
-
 
 ---- solve
 
@@ -398,49 +169,49 @@ eval : Model -> Op -> ( Model, Cmd Msg )
 eval model mayOp =
     case model.left of
         Mod _ ->
-            ( model, (Ui.getRandomQuote SetQuote) )
+            ( model, (Utils.getRandomQuote SetQuote) )
 
         --fix later
         None ->
-            ( model, (Ui.getRandomQuote SetQuote) )
+            ( model, (Utils.getRandomQuote SetQuote) )
 
         NumWD _ _ ->
-            ( model, (Ui.getRandomQuote SetQuote) )
+            ( model, (Utils.getRandomQuote SetQuote) )
 
         --fix later
         Num l li ->
             case model.right of
                 Mod _ ->
-                    ( model, (Ui.getRandomQuote SetQuote) )
+                    ( model, (Utils.getRandomQuote SetQuote) )
 
                 --fix later
                 NumWD _ _ ->
-                    ( model, (Ui.getRandomQuote SetQuote) )
+                    ( model, (Utils.getRandomQuote SetQuote) )
 
                 --fix later
                 None ->
-                    ( model, (Ui.getRandomQuote SetQuote) )
+                    ( model, (Utils.getRandomQuote SetQuote) )
 
                 Num r ri ->
                     case model.operand of
                         NoOp ->
-                            ( model, (Ui.getRandomQuote SetQuote) )
+                            ( model, (Utils.getRandomQuote SetQuote) )
 
                         Plus ->
-                            ( Model (Num (l + r) 0) None mayOp "", (Ui.getRandomQuote SetQuote) )
+                            ( Model (Num (l + r) 0) None mayOp "", (Utils.getRandomQuote SetQuote) )
 
                         Minus ->
-                            ( Model (Num (l - r) 0) None mayOp "", (Ui.getRandomQuote SetQuote) )
+                            ( Model (Num (l - r) 0) None mayOp "", (Utils.getRandomQuote SetQuote) )
 
                         Multply ->
-                            ( Model (Num (l * r) 0) None mayOp "", (Ui.getRandomQuote SetQuote) )
+                            ( Model (Num (l * r) 0) None mayOp "", (Utils.getRandomQuote SetQuote) )
 
                         Divide ->
                             if r == 0 then
-                                ( { model | right = None }, (Ui.getRandomQuote SetQuote) )
+                                ( { model | right = None }, (Utils.getRandomQuote SetQuote) )
 
                             else
-                                ( Model (Num (l / r) 0) None NoOp "", (Ui.getRandomQuote SetQuote) )
+                                ( Model (Num (l / r) 0) None NoOp "", (Utils.getRandomQuote SetQuote) )
 
 
 
@@ -452,7 +223,7 @@ view model =
     { title = "Calculator :)"
     , body =
         [ column []
-            [ Ui.display 20 ((numStr model.left) ++ (opStr model.operand) ++ (numStr model.right))
+            [ Ui.display 20 ((Utils.numStr model.left) ++ (Utils.opStr model.operand) ++ (Utils.numStr model.right))
             , Ui.display 20 (model.quote)
             , keypad
             ]
@@ -492,61 +263,3 @@ keypad =
             }
         ]
 
-
-
-----DISPLAY
-
-modStr : Mod -> String
-modStr mod =
-    case mod of
-        Deci ->
-            "."
-
-        PosNeg ->
-            "+/-"
-
-        Both ->
-            ""
-
-
-numStr : Numb -> String
-numStr mum =
-    case mum of
-        None ->
-            " "
-
-        NumWD f i ->
-            (fromFloat f ++ ".") ++ String.repeat i "0"
-
-        Num f i ->
-            fromFloat f ++ String.repeat i "0"
-
-        Mod m ->
-            case m of
-                Deci ->
-                    "."
-
-                PosNeg ->
-                    "-"
-
-                Both ->
-                    "-."
-
-
-opStr : Op -> String
-opStr mop =
-    case mop of
-        NoOp ->
-            " "
-
-        Plus ->
-            "+"
-
-        Minus ->
-            "-"
-
-        Multply ->
-            "*"
-
-        Divide ->
-            "/"

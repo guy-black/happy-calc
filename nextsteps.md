@@ -6,7 +6,7 @@
 
 
    -icons, work on general sizes and colors
-
+   -limit the number of decimal places smoldip renders
 
 
 # conversions and other common formulas calculator
@@ -63,10 +63,7 @@
             -encrypt model.input model.offset
 
     -temperature
-        -pull numbs out from main calc into ui to share
-	-use that instead of floats
-	-also pull appNum out
-	-maybe just make a Utils.elm file to hold those and keep seperate from the Ui
+	-make number mods, clear, and back space work 	 
     -ohms law
         -same as temperature but with different units
     -maybe more later

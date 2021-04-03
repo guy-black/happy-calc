@@ -7,6 +7,7 @@ import Spa.Generated.Route as Route
 import Element exposing (..)
 import Element exposing (link, text)
 import Ui
+import Utils
 import Http
 
 
@@ -36,7 +37,7 @@ type alias Model =
 
 init : Url Params -> ( Model, Cmd Msg )
 init { params } =
-    ( Model "", (Ui.getRandomQuote SetQuote) )
+    ( Model "", (Utils.getRandomQuote SetQuote) )
 
 
 
