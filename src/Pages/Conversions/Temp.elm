@@ -56,6 +56,9 @@ init { params } =
 type Msg
     = ChgUnit Scale
     | ChgNum Float
+    | ModNum Mod
+    | Bcksp
+    | Clr
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -65,42 +68,16 @@ update msg model =
             ( { model | unit = s }, Cmd.none )
 
         ChgNum i ->
-            case model.unit of
-                F ->
-                    let
-                        newNumb =
-                            Utils.appNum model.f i
-                    in
-                    case Utils.validNumb newNumb of
-                        Just f ->
-                            ( { model | f = newNumb, c = Num (ftoc f) 0, k = Num (ftok f) 0 }, Cmd.none )
+            updateHelper model Utils.appNum i
 
-                        Nothing ->
-                            ( { model | f = newNumb }, Cmd.none )
+        ModNum m ->
+            updateHelper model Utils.modNumb m
 
-                C ->
-                    let
-                        newNumb =
-                            Utils.appNum model.c i
-                    in
-                    case Utils.validNumb newNumb of
-                        Just c ->
-                            ( { model | c = newNumb, f = Num (ctof c) 0, k = Num (ctok c) 0 }, Cmd.none )
+        Bcksp ->
+            ( model, Cmd.none ) --oopsi doopsie got too clever
 
-                        Nothing ->
-                            ( { model | c = newNumb }, Cmd.none )
-
-                K ->
-                    let
-                        newNumb =
-                            Utils.appNum model.k i
-                    in
-                    case Utils.validNumb newNumb of
-                        Just k ->
-                            ( { model | k = newNumb, c = Num (ktoc k) 0, f = Num (ktof k) 0 }, Cmd.none )
-
-                        Nothing ->
-                            ( { model | k = newNumb }, Cmd.none )
+        Clr ->
+            ( Model F None None None "", Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -140,6 +117,44 @@ ktoc k =
 ktof : Float -> Float
 ktof k =
     ctof (ktoc k)
+
+
+
+--current model -> revant update function -> new model
+
+
+updateHelper : Model -> (Numb -> a -> Numb) -> a -> (Model, Cmd msg)
+updateHelper model fn x =
+    let
+        newNumb =
+            case model.unit of
+                F ->
+                    fn model.f x
+
+                C ->
+                    fn model.c x
+
+                K ->
+                    fn model.k x
+    in
+    case ( model.unit, Utils.validNumb newNumb ) of
+        ( F, Just f ) ->
+            ( { model | f = newNumb, c = Num (ftoc f) 0, k = Num (ftok f) 0 }, Cmd.none )
+
+        ( F, Nothing ) ->
+            ( { model | f = newNumb }, Cmd.none )
+
+        ( C, Just c ) ->
+            ( { model | c = newNumb, f = Num (ctof c) 0, k = Num (ctok c) 0 }, Cmd.none )
+
+        ( C, Nothing ) ->
+            ( { model | c = newNumb }, Cmd.none )
+
+        ( K, Just k ) ->
+            ( { model | k = newNumb, c = Num (ktoc k) 0, f = Num (ktof k) 0 }, Cmd.none )
+
+        ( K, Nothing ) ->
+            ( { model | k = newNumb }, Cmd.none )
 
 
 
@@ -195,8 +210,8 @@ numpad =
         , seven = Just (ChgNum 7)
         , eight = Just (ChgNum 8)
         , nine = Just (ChgNum 9)
-        , decimal = Nothing
-        , posneg = Nothing
-        , bcksp = Nothing
-        , clear = Nothing
+        , decimal = Just (ModNum Deci)
+        , posneg = Just (ModNum PosNeg)
+        , bcksp = Just Bcksp
+        , clear = Just Clr
         }

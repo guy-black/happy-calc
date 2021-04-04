@@ -1,0 +1,26 @@
+#+title: next steps for happy calc :)
+
+*general things
+** UI
+*** TODO Just make smolDisp into medium disp, still keep the name tho
+*** TODO add icons
+*** TODO fix sizes and colors
+* conversions and formulas
+** several units (length, weight, volume)
+*** logic
+**** model
+**** update
+**** type Unit
+***** length
+***** weight
+***** volume
+*** view
+**** TODO input dropdown menu to choose one input unit
+**** TODO input dropdown menu to choose several output unit
+**** TODO list of output units
+**** TODO quote box
+**** TODO numPad
+** few units (temperature, ohms law, caesars cypher)
+*** logic
+**** model
+**** update
