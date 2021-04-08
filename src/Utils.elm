@@ -1,4 +1,4 @@
-module Utils exposing (getRandomQuote, bckspNumb, zerosAtEnd, isLastNon0CharDeci, isMod, whichMod, modNumb, appNum, isInt, modStr, numStr, opStr, validNumb)
+module Utils exposing (getRandomQuote, bckspNumb, wrappedBcksp, zerosAtEnd, isLastNon0CharDeci, isMod, whichMod, modNumb, appNum, isInt, modStr, numStr, opStr, validNumb)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
@@ -24,7 +24,9 @@ pullQuote =
 
 
 ---- Bcksp a number
-
+wrappedBcksp : Numb -> a -> Numb
+wrappedBcksp n a =
+    bckspNumb n
 
 bckspNumb : Numb -> Numb
 bckspNumb n =
@@ -281,12 +283,10 @@ opStr mop =
 validNumb : Numb -> Maybe Float
 validNumb n =
     case n of
-         Num f i ->
-            if i == 0 then
-                Just f
-            else Nothing  
-         NumWD _ _ ->
-            Nothing
+         Num f _ ->
+            Just f  
+         NumWD f _ ->
+            Just f
          Mod _ ->
              Nothing
          None ->

@@ -74,7 +74,7 @@ update msg model =
             updateHelper model Utils.modNumb m
 
         Bcksp ->
-            ( model, Cmd.none ) --oopsi doopsie got too clever
+            updateHelper model Utils.wrappedBcksp () 
 
         Clr ->
             ( Model F None None None "", Cmd.none )
@@ -123,7 +123,7 @@ ktof k =
 --current model -> revant update function -> new model
 
 
-updateHelper : Model -> (Numb -> a -> Numb) -> a -> (Model, Cmd msg)
+updateHelper : Model -> (Numb -> a -> Numb) -> a -> (Model, Cmd Msg)
 updateHelper model fn x =
     let
         newNumb =
@@ -137,6 +137,8 @@ updateHelper model fn x =
                 K ->
                     fn model.k x
     in
+    if (newNumb == None) then
+        (update Clr model) else
     case ( model.unit, Utils.validNumb newNumb ) of
         ( F, Just f ) ->
             ( { model | f = newNumb, c = Num (ftoc f) 0, k = Num (ftok f) 0 }, Cmd.none )
