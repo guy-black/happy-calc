@@ -1,9 +1,10 @@
-module Utils exposing (getRandomQuote, bckspNumb, wrappedBcksp, zerosAtEnd, isLastNon0CharDeci, isMod, whichMod, modNumb, appNum, isInt, modStr, numStr, opStr, validNumb)
+module Utils exposing (appNum, bckspNumb, getRandomQuote, isInt, isLastNon0CharDeci, isMod, modNumb, modStr, numStr, opStr, roundNum, validNumb, whichMod, wrappedBcksp, zerosAtEnd)
 
 import Http
 import Json.Decode exposing (Decoder, field, string)
-import Types exposing (..)
 import String
+import Types exposing (..)
+
 
 
 -- HTTP
@@ -24,9 +25,12 @@ pullQuote =
 
 
 ---- Bcksp a number
+
+
 wrappedBcksp : Numb -> a -> Numb
 wrappedBcksp n a =
     bckspNumb n
+
 
 bckspNumb : Numb -> Numb
 bckspNumb n =
@@ -225,7 +229,7 @@ appNum num i =
 
 
 ---- handle mods
------- check if number has decimal
+------ check if Float is really an int
 
 
 isInt : Float -> Bool
@@ -236,58 +240,98 @@ isInt f =
     else
         False
 
+
+
 ----convert custom types to strings
+
+
 modStr : Mod -> String
 modStr mod =
     case mod of
         Deci ->
             "."
+
         PosNeg ->
             "+/-"
+
         Both ->
             ""
+
 
 numStr : Numb -> String
 numStr mum =
     case mum of
         None ->
             " "
+
         NumWD f i ->
-             (String.fromFloat f ++ ".") ++ String.repeat i "0"
+            (String.fromFloat f ++ ".") ++ String.repeat i "0"
+
         Num f i ->
             String.fromFloat f ++ String.repeat i "0"
+
         Mod m ->
             case m of
                 Deci ->
                     "."
+
                 PosNeg ->
                     "-"
+
                 Both ->
                     "-."
+
 
 opStr : Op -> String
 opStr mop =
     case mop of
         NoOp ->
             " "
+
         Plus ->
             "+"
+
         Minus ->
             "-"
+
         Multply ->
             "*"
+
         Divide ->
             "/"
+
+
+strNum : String -> Numb
+strNum s =
+    case String.toFloat s of
+        Just f ->
+            Num f 0
+
+        Nothing ->
+            None
 
 
 validNumb : Numb -> Maybe Float
 validNumb n =
     case n of
-         Num f _ ->
-            Just f  
-         NumWD f _ ->
+        Num f _ ->
             Just f
-         Mod _ ->
-             Nothing
-         None ->
-             Nothing
+
+        NumWD f _ ->
+            Just f
+
+        Mod _ ->
+            Nothing
+
+        None ->
+            Nothing
+
+
+roundNum : Numb -> Int -> Numb
+roundNum n i =
+    case List.head (String.indexes "." (numStr n)) of
+        Nothing ->
+            n
+
+        Just ndx ->
+            strNum (String.left (ndx + i) (numStr n))

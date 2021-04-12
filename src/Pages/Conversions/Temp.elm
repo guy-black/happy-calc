@@ -8,7 +8,7 @@ import Spa.Page as Page exposing (Page)
 import Spa.Url as Url exposing (Url)
 import Types exposing (..)
 import Ui
-import Utils
+import Utils exposing (roundNum)
 
 
 page : Page Params Model Msg
@@ -74,10 +74,10 @@ update msg model =
             updateHelper model Utils.modNumb m
 
         Bcksp ->
-            updateHelper model Utils.wrappedBcksp () 
+            updateHelper model Utils.wrappedBcksp ()
 
         Clr ->
-            ( Model F None None None "", Cmd.none )
+            ( Model model.unit None None None "", Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -123,7 +123,7 @@ ktof k =
 --current model -> revant update function -> new model
 
 
-updateHelper : Model -> (Numb -> a -> Numb) -> a -> (Model, Cmd Msg)
+updateHelper : Model -> (Numb -> a -> Numb) -> a -> ( Model, Cmd Msg )
 updateHelper model fn x =
     let
         newNumb =
@@ -137,26 +137,28 @@ updateHelper model fn x =
                 K ->
                     fn model.k x
     in
-    if (newNumb == None) then
-        (update Clr model) else
-    case ( model.unit, Utils.validNumb newNumb ) of
-        ( F, Just f ) ->
-            ( { model | f = newNumb, c = Num (ftoc f) 0, k = Num (ftok f) 0 }, Cmd.none )
+    if newNumb == None then
+        update Clr model
 
-        ( F, Nothing ) ->
-            ( { model | f = newNumb }, Cmd.none )
+    else
+        case ( model.unit, Utils.validNumb newNumb ) of
+            ( F, Just f ) ->
+                ( { model | f = newNumb, c = Num (ftoc f) 0, k = Num (ftok f) 0 }, Cmd.none )
 
-        ( C, Just c ) ->
-            ( { model | c = newNumb, f = Num (ctof c) 0, k = Num (ctok c) 0 }, Cmd.none )
+            ( F, Nothing ) ->
+                ( { model | f = newNumb }, Cmd.none )
 
-        ( C, Nothing ) ->
-            ( { model | c = newNumb }, Cmd.none )
+            ( C, Just c ) ->
+                ( { model | c = newNumb, f = Num (ctof c) 0, k = Num (ctok c) 0 }, Cmd.none )
 
-        ( K, Just k ) ->
-            ( { model | k = newNumb, c = Num (ktoc k) 0, f = Num (ktof k) 0 }, Cmd.none )
+            ( C, Nothing ) ->
+                ( { model | c = newNumb }, Cmd.none )
 
-        ( K, Nothing ) ->
-            ( { model | k = newNumb }, Cmd.none )
+            ( K, Just k ) ->
+                ( { model | k = newNumb, c = Num (ktoc k) 0, f = Num (ktof k) 0 }, Cmd.none )
+
+            ( K, Nothing ) ->
+                ( { model | k = newNumb }, Cmd.none )
 
 
 
@@ -181,21 +183,21 @@ disps : Model -> List (Element Msg)
 disps m =
     case m.unit of
         F ->
-            [ Ui.smolDisp m.f "°F" (Just Color.darkerGrey) (ChgUnit F)
-            , Ui.smolDisp m.c "°C" Nothing (ChgUnit C)
-            , Ui.smolDisp m.k "°K" Nothing (ChgUnit K)
+            [ Ui.smolDisp (Utils.roundNum m.f 3) "°F" (Just Color.darkerGrey) (ChgUnit F)
+            , Ui.smolDisp (Utils.roundNum m.c 3) "°C" Nothing (ChgUnit C)
+            , Ui.smolDisp (Utils.roundNum m.k 3) "°K" Nothing (ChgUnit K)
             ]
 
         C ->
-            [ Ui.smolDisp m.f "°F" Nothing (ChgUnit F)
-            , Ui.smolDisp m.c "°C" (Just Color.darkerGrey) (ChgUnit C)
-            , Ui.smolDisp m.k "°K" Nothing (ChgUnit K)
+            [ Ui.smolDisp (Utils.roundNum m.f 3) "°F" Nothing (ChgUnit F)
+            , Ui.smolDisp (Utils.roundNum m.c 3) "°C" (Just Color.darkerGrey) (ChgUnit C)
+            , Ui.smolDisp (Utils.roundNum m.k 3) "°K" Nothing (ChgUnit K)
             ]
 
         K ->
-            [ Ui.smolDisp m.f "°F" Nothing (ChgUnit F)
-            , Ui.smolDisp m.c "°C" Nothing (ChgUnit C)
-            , Ui.smolDisp m.k "°K" (Just Color.darkerGrey) (ChgUnit K)
+            [ Ui.smolDisp (Utils.roundNum m.f 3) "°F" Nothing (ChgUnit F)
+            , Ui.smolDisp (Utils.roundNum m.c 3) "°C" Nothing (ChgUnit C)
+            , Ui.smolDisp (Utils.roundNum m.k 3) "°K" (Just Color.darkerGrey) (ChgUnit K)
             ]
 
 
