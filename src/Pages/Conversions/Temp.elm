@@ -59,7 +59,7 @@ type Msg
     | ModNum Mod
     | Bcksp
     | Clr
-
+    | SetQuote (Result Http.Error String)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -79,6 +79,12 @@ update msg model =
         Clr ->
             ( Model model.unit None None None "", Cmd.none )
 
+        SetQuote result ->
+            case result of
+                Ok s ->
+                    ({model : quote  = s}, Cmd.none)
+                Err _ ->
+                    ({model | quote = "oopsie"}, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -170,7 +176,7 @@ view model =
     { title = "Conversions.Temp"
     , body =
         [ column []
-            [ text "temp converter"
+            [ text model.quote
             , row [] (disps model)
             , numpad
             , Ui.conversionsMenu
